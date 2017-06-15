@@ -12,6 +12,7 @@ from ..timing import DebugTiming
 from ..errors import (WrongPasswordError, WelcomeError, KeyFormatError,
                       TransferError, NoTorError, UnsendableFileError,
                       ServerConnectionError)
+from ..util import get_io_encoding
 from twisted.internet.defer import inlineCallbacks, maybeDeferred
 from twisted.python.failure import Failure
 from twisted.internet.task import react
@@ -19,6 +20,8 @@ from twisted.internet.task import react
 import click
 top_import_finish = time.time()
 
+class CLIError(Exception):
+    pass
 
 class Config(object):
     """
@@ -119,7 +122,7 @@ def _dispatch_command(reactor, cfg, command):
     except TransferError as e:
         print(u"TransferError: %s" % six.text_type(e), file=cfg.stderr)
         raise SystemExit(1)
-    except ServerConnectionError as e:
+    except (CLIError, ServerConnectionError) as e:
         msg = fill("ERROR: " + dedent(e.__doc__))
         msg += "\n" + six.text_type(e)
         print(msg, file=cfg.stderr)
@@ -187,6 +190,14 @@ TorArgs = _compose(
 @click.pass_obj
 def send(cfg, **kwargs):
     """Send a text message, file, or directory"""
+    what = kwargs["what"]
+    if isinstance(what, type(b"")):
+        io_encoding = get_io_encoding()
+        try:
+            kwargs["what"] = unicode(what, get_io_encoding())
+        except UnicodeDecodeError:
+            raise CLIError("Argument %s cannot be decoded as %s." %
+                           (repr(what), io_encoding))
     for name, value in kwargs.items():
         setattr(cfg, name, value)
     with cfg.timing.add("import", which="cmd_send"):

@@ -318,58 +318,6 @@ class PregeneratedCode(ServerBase, ScriptsBase, unittest.TestCase):
         self._env = yield self.is_runnable()
         yield ServerBase.setUp(self)
 
-    def test_log_encodings(self):
-        import locale
-        print()
-        print("python:", sys.version)
-        print('maxunicode:', str(sys.maxunicode))
-        print('filesystem.encoding:', str(sys.getfilesystemencoding()))
-        print('locale.getpreferredencoding:', str(locale.getpreferredencoding()))
-        try:
-            print('locale.defaultlocale:', str(locale.getdefaultlocale()))
-        except ValueError as e:
-            print('got exception from locale.getdefaultlocale()', e)
-        print('locale.locale: ', str(locale.getlocale()))
-
-
-        def canonical_encoding(encoding):
-            if encoding is None:
-                log.msg("Warning: falling back to UTF-8 encoding.", level=log.WEIRD)
-                encoding = 'utf-8'
-            encoding = encoding.lower()
-            if encoding == "cp65001":
-                encoding = 'utf-8'
-            elif encoding == "us-ascii" or encoding == "646" or encoding == "ansi_x3.4-1968":
-                encoding = 'ascii'
-
-            return encoding
-
-        def check_encoding(encoding):
-            # sometimes Python returns an encoding name that it doesn't support for conversion
-            # fail early if this happens
-            try:
-                u"test".encode(encoding)
-            except (LookupError, AttributeError):
-                raise AssertionError("The character encoding '%s' is not supported for conversion." % (encoding,))
-
-        if sys.platform == 'win32':
-            # On Windows we install UTF-8 stream wrappers for sys.stdout and
-            # sys.stderr, and reencode the arguments as UTF-8 (see scripts/runner.py).
-            io_encoding = 'utf-8'
-        else:
-            ioenc = None
-            if hasattr(sys.stdout, 'encoding'):
-                ioenc = sys.stdout.encoding
-            if ioenc is None:
-                try:
-                    ioenc = locale.getpreferredencoding()
-                except Exception:
-                    pass  # work around <http://bugs.python.org/issue1443504>
-            io_encoding = canonical_encoding(ioenc)
-
-        check_encoding(io_encoding)
-        print("io_encoding:", io_encoding)
-
     @inlineCallbacks
     def _do_test(self, as_subprocess=False,
                  mode="text", addslash=False, override_filename=False,
