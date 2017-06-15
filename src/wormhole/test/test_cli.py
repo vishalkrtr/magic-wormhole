@@ -327,7 +327,7 @@ class PregeneratedCode(ServerBase, ScriptsBase, unittest.TestCase):
         print('locale.getpreferredencoding:', str(locale.getpreferredencoding()))
         try:
             print('locale.defaultlocale:', str(locale.getdefaultlocale()))
-        except ValueError, e:
+        except ValueError as e:
             print('got exception from locale.getdefaultlocale()', e)
         print('locale.locale: ', str(locale.getlocale()))
 
