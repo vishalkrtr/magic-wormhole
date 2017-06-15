@@ -1,7 +1,6 @@
 # No unicode_literals
-import sys, os, json, unicodedata, locale
+import os, json, unicodedata
 from binascii import hexlify, unhexlify
-from twisted.python import log
 
 def to_bytes(u):
     return unicodedata.normalize("NFC", u).encode("utf-8")
@@ -37,47 +36,3 @@ def estimate_free_space(target):
         return s.f_frsize * s.f_bfree
     except AttributeError:
         return None
-
-# encoding routines copied from Tahoe
-
-def _canonical_encoding(encoding):
-    if encoding is None:
-        log.msg("Warning: falling back to UTF-8 encoding.", level=log.WEIRD)
-        encoding = 'utf-8'
-    encoding = encoding.lower()
-    if encoding == "cp65001":
-        encoding = 'utf-8'
-    elif encoding == "us-ascii" or encoding == "646" or encoding == "ansi_x3.4-1968":
-        encoding = 'ascii'
-
-    return encoding
-
-def _check_encoding(encoding):
-    # sometimes Python returns an encoding name that it doesn't support for
-    # conversion fail early if this happens
-    try:
-        u"test".encode(encoding)
-    except (LookupError, AttributeError):
-        raise AssertionError("The character encoding '%s' is not supported for conversion." % (encoding,))
-
-def get_io_encoding():
-    if sys.platform == 'win32':
-        # # On Windows we install UTF-8 stream wrappers for sys.stdout and
-        # # sys.stderr, and reencode the arguments as UTF-8 (see
-        # # scripts/runner.py).
-        #
-        # Note: tahoe does that, but we don't. Set to UTF-8 and hope.
-        io_encoding = 'utf-8'
-    else:
-        ioenc = None
-        if hasattr(sys.stdout, 'encoding'):
-            ioenc = sys.stdout.encoding
-        if ioenc is None:
-            try:
-                ioenc = locale.getpreferredencoding()
-            except Exception:
-                pass  # work around <http://bugs.python.org/issue1443504>
-        io_encoding = _canonical_encoding(ioenc)
-
-    _check_encoding(io_encoding)
-    return io_encoding
