@@ -318,6 +318,19 @@ class PregeneratedCode(ServerBase, ScriptsBase, unittest.TestCase):
         self._env = yield self.is_runnable()
         yield ServerBase.setUp(self)
 
+    def test_log_encodings(self):
+        import locale
+        print()
+        print("python:", sys.version)
+        print('maxunicode:', str(sys.maxunicode))
+        print('filesystem.encoding:', str(sys.getfilesystemencoding()))
+        print('locale.getpreferredencoding:', str(locale.getpreferredencoding()))
+        try:
+            print('locale.defaultlocale:', str(locale.getdefaultlocale()))
+        except ValueError, e:
+            print('got exception from locale.getdefaultlocale()', e)
+        print('locale.locale: ', str(locale.getlocale()))
+
     @inlineCallbacks
     def _do_test(self, as_subprocess=False,
                  mode="text", addslash=False, override_filename=False,
@@ -350,7 +363,7 @@ class PregeneratedCode(ServerBase, ScriptsBase, unittest.TestCase):
         elif mode in ("file", "empty-file"):
             if mode == "empty-file":
                 message = ""
-            send_filename = "testfile"
+            send_filename = "testfil\u00EB" # e-with-diaeresis
             with open(os.path.join(send_dir, send_filename), "w") as f:
                 f.write(message)
             send_cfg.what = send_filename

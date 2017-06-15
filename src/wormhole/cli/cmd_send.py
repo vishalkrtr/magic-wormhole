@@ -232,10 +232,10 @@ class Sender:
             fd_to_send = None
             return offer, fd_to_send
 
-        print("send: type(cwd)=%s, type(what)=%s" % (type(args.cwd),
-                                                     type(args.what)))
+        #print("send: type(cwd)=%s, type(what)=%s" % (type(args.cwd),
+        #                                             type(args.what)))
         what = os.path.join(args.cwd, args.what)
-        print("send: type(cwd+what)=%s" % type(what))
+        #print("send: type(cwd+what)=%s" % type(what))
         what = what.rstrip(os.sep)
         if not os.path.exists(what):
             raise TransferError("Cannot send: no file/directory named '%s'" %
